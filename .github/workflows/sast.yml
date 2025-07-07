@@ -15,20 +15,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Semgrep
-        # Use a Action oficial do Semgrep
-        uses: semgrep/semgrep-action@v2
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          # A configuração 'auto' permite que o Semgrep escolha as melhores regras
-          # para o seu projeto. Para mais configurações, veja a documentação do Semgrep.
-          config: "auto"
-          # Gera a saída no formato SARIF, que é o padrão para ferramentas de análise
-          # e pode ser importado pelo DefectDojo e pelo GitHub Security tab.
-          sarif_output: semgrep.sarif
+          python-version: '3.x'
+
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run Semgrep Scan
+        # Voltamos a usar 'semgrep ci', que é o comando ideal para o dia a dia.
+        # Ele é "diff-aware", ou seja, só irá falhar se o Pull Request
+        # introduzir NOVAS vulnerabilidades, ignorando as já existentes na 'main'.
+        # Isso impede que o débito técnico de segurança bloqueie novos desenvolvimentos.
+        run: semgrep ci --config "p/default" --sarif --output=semgrep.sarif
+
+      - name: Show custom error on failure
+        # Este passo só executa se o passo anterior falhar (graças a `if: failure()`).
+        # Ele usa a anotação '::error::' para criar uma mensagem de erro clara e visível.
+        if: failure()
+        run: |
+          echo "::error::Bloqueio de PR: Foram encontradas vulnerabilidades que violam a política de segurança. Por favor, verifique os logs do passo 'Run Semgrep Scan' acima para ver os detalhes das vulnerabilidades."
 
       - name: Upload SARIF file
-        # Faz o upload do arquivo SARIF como um artefato para que possamos usá-lo
-        # em outros jobs ou para download.
+        # Este passo só será executado se o scan for bem-sucedido (não encontrar nada).
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-report

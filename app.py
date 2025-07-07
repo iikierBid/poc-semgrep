@@ -28,6 +28,7 @@ db_connection = init_db()
 
 @app.route('/')
 def home():
+    # Adicionando um comentário para testar o fluxo de PR.
     return """
     <h1>Aplicação de Teste SAST</h1>
     <p>Esta aplicação contém vulnerabilidades para a PoC do Semgrep.</p>
