@@ -15,20 +15,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Semgrep
-        # Use a Action oficial do Semgrep
-        uses: semgrep/semgrep-action@v2
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          # A configuração 'auto' permite que o Semgrep escolha as melhores regras
-          # para o seu projeto. Para mais configurações, veja a documentação do Semgrep.
-          config: "auto"
-          # Gera a saída no formato SARIF, que é o padrão para ferramentas de análise
-          # e pode ser importado pelo DefectDojo e pelo GitHub Security tab.
-          sarif_output: semgrep.sarif
+          python-version: '3.x'
+
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run Semgrep Scan
+        # Executa o Semgrep CLI diretamente. O comando 'semgrep ci' é o recomendado
+        # para ambientes de CI. Ele irá falhar (exit code 1) se encontrar vulnerabilidades,
+        # o que é o comportamento que desejamos para bloquear o PR.
+        run: semgrep ci --sarif --output=semgrep.sarif
 
       - name: Upload SARIF file
-        # Faz o upload do arquivo SARIF como um artefato para que possamos usá-lo
-        # em outros jobs ou para download.
+        # Este passo só será executado se o scan for bem-sucedido. Para registrar
+        # falhas também, precisaríamos adicionar 'if: always()'.
+        # Por enquanto, manteremos o comportamento de falha no bloqueio.
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-report
