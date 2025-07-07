@@ -24,11 +24,10 @@ jobs:
         run: pip install semgrep
 
       - name: Run Semgrep Scan
-        # Executa o Semgrep CLI diretamente, usando o conjunto de regras "p/default"
-        # que é um conjunto abrangente de regras da comunidade.
-        # O comando irá falhar (exit code diferente de 0) se encontrar vulnerabilidades,
-        # o que irá bloquear o PR, como desejado.
-        run: semgrep ci --config "p/default" --sarif --output=semgrep.sarif
+        # Usamos 'semgrep scan' em vez de 'semgrep ci'. O 'scan' verifica todos os arquivos
+        # em vez de apenas as alterações do PR. Isso é ideal para nossa PoC, pois queremos
+        # que o build falhe com as vulnerabilidades existentes.
+        run: semgrep scan --config "p/default" --sarif --output=semgrep.sarif
 
       - name: Upload SARIF file
         # Este passo só será executado se o scan for bem-sucedido (não encontrar nada).
