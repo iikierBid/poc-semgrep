@@ -24,10 +24,10 @@ jobs:
         run: pip install semgrep
 
       - name: Run Semgrep Scan
-        # Usamos 'semgrep scan' em vez de 'semgrep ci'. O 'scan' verifica todos os arquivos
-        # em vez de apenas as alterações do PR. Isso é ideal para nossa PoC, pois queremos
-        # que o build falhe com as vulnerabilidades existentes.
-        run: semgrep scan --config "p/default" --sarif --output=semgrep.sarif
+        # Usamos 'semgrep scan' e a flag '--error'. Isso força o comando
+        # a sair com um código de erro (falhar) se encontrar qualquer vulnerabilidade,
+        # que é o comportamento que precisamos para bloquear o PR.
+        run: semgrep scan --config "p/default" --error --sarif --output=semgrep.sarif
 
       - name: Upload SARIF file
         # Este passo só será executado se o scan for bem-sucedido (não encontrar nada).
