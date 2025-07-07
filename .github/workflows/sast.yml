@@ -28,7 +28,8 @@ jobs:
         # Ele é "diff-aware", ou seja, só irá falhar se o Pull Request
         # introduzir NOVAS vulnerabilidades, ignorando as já existentes na 'main'.
         # Isso impede que o débito técnico de segurança bloqueie novos desenvolvimentos.
-        run: semgrep ci --config "p/default" --sarif --output=semgrep.sarif
+        # Usamos o config 'p/secrets' e a flag '--fail-on warning' para sermos mais rigorosos.
+        run: semgrep ci --config "p/secrets" --fail-on warning --sarif --output=semgrep.sarif
 
       - name: Show custom error on failure
         # Este passo só executa se o passo anterior falhar (graças a `if: failure()`).
