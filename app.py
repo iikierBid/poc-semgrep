@@ -8,6 +8,9 @@ app = Flask(__name__)
 # Chaves e segredos nunca devem ser colocados diretamente no código.
 API_KEY = "sk_live_abcdef1234567890_muitosecreto"
 
+# Vulnerabilidade 4: Adicionando um novo segredo para o teste
+SECRET_ACCESS_KEY = "aws_secret_key_exemplo_12345"
+
 # Configuração do banco de dados (simples, em memória para a PoC)
 def init_db():
     conn = sqlite3.connect(':memory:')
