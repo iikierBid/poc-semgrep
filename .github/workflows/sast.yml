@@ -26,21 +26,17 @@ jobs:
       - name: Run Semgrep Scan
         # Executa o Semgrep CLI diretamente, usando o conjunto de regras "p/default"
         # que é um conjunto abrangente de regras da comunidade.
-        # A flag --no-verify impede o semgrep de verificar a conexao com o dashboard, o que pode causar problemas em algumas redes
-        # Usamos `continue-on-error: true` para garantir que os passos seguintes executem mesmo se o semgrep encontrar problemas e falhar.
-        id: semgrep
-        continue-on-error: true
-        run: semgrep ci --config "p/default" --sarif --output=semgrep.sarif --no-verify
+        # O comando irá falhar (exit code diferente de 0) se encontrar vulnerabilidades,
+        # o que irá bloquear o PR, como desejado.
+        run: semgrep ci --config "p/default" --sarif --output=semgrep.sarif
 
-      - name: Verify SARIF file creation
-        run: ls -la
-        
       - name: Upload SARIF file
+        # Este passo só será executado se o scan for bem-sucedido (não encontrar nada).
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-report
           path: semgrep.sarif
-          if-no-files-found: warn # Alterado para 'warn' para podermos depurar
+          if-no-files-found: error # Garante que o job falhe se o arquivo não for criado
 
 #      - name: Upload to DefectDojo
 #        # Este passo sempre será executado para garantir que os resultados sejam registrados.
