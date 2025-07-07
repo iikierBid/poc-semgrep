@@ -15,28 +15,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Semgrep SAST Scan
-        # Voltamos a usar a Action oficial, que é mais limpa e legível.
-        # A action executa 'semgrep ci' por padrão e bloqueia em severidade 'ERROR'.
-        uses: semgrep/semgrep-action@v2
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          # Usamos o conjunto de regras focado em segredos.
-          config: "p/secrets"
+          python-version: '3.x'
+
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run Semgrep Scan
+        # Voltamos à instalação manual, que se provou mais robusta neste ambiente.
+        # O 'semgrep ci' é o comando ideal para produção, pois foca em novas vulnerabilidades
+        # e o conjunto de regras 'p/secrets' é focado no nosso caso de uso.
+        run: semgrep ci --config "p/secrets" --sarif --output=semgrep.sarif
 
       - name: Show custom error on failure
-        # Este passo só executa se o passo anterior falhar (graças a `if: failure()`).
-        # Ele usa a anotação '::error::' para criar uma mensagem de erro clara e visível.
         if: failure()
         run: |
           echo "::error::Bloqueio de PR: Foram encontradas vulnerabilidades que violam a política de segurança. Por favor, verifique os logs do passo 'Run Semgrep Scan' acima para ver os detalhes das vulnerabilidades."
 
       - name: Upload SARIF file
-        # Este passo só será executado se o scan for bem-sucedido (não encontrar nada).
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-report
           path: semgrep.sarif
-          if-no-files-found: error # Garante que o job falhe se o arquivo não for criado
+          if-no-files-found: error
 
 #      - name: Upload to DefectDojo
 #        # Este passo sempre será executado para garantir que os resultados sejam registrados.
