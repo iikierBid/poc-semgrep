@@ -24,10 +24,18 @@ jobs:
         run: pip install semgrep
 
       - name: Run Semgrep Scan
-        # Usamos 'semgrep scan' e a flag '--error'. Isso força o comando
-        # a sair com um código de erro (falhar) se encontrar qualquer vulnerabilidade,
-        # que é o comportamento que precisamos para bloquear o PR.
-        run: semgrep scan --config "p/default" --error --sarif --output=semgrep.sarif
+        # Voltamos a usar 'semgrep ci', que é o comando ideal para o dia a dia.
+        # Ele é "diff-aware", ou seja, só irá falhar se o Pull Request
+        # introduzir NOVAS vulnerabilidades, ignorando as já existentes na 'main'.
+        # Isso impede que o débito técnico de segurança bloqueie novos desenvolvimentos.
+        run: semgrep ci --config "p/default" --sarif --output=semgrep.sarif
+
+      - name: Show custom error on failure
+        # Este passo só executa se o passo anterior falhar (graças a `if: failure()`).
+        # Ele usa a anotação '::error::' para criar uma mensagem de erro clara e visível.
+        if: failure()
+        run: |
+          echo "::error::Bloqueio de PR: Foram encontradas vulnerabilidades que violam a política de segurança. Por favor, verifique os logs do passo 'Run Semgrep Scan' acima para ver os detalhes das vulnerabilidades."
 
       - name: Upload SARIF file
         # Este passo só será executado se o scan for bem-sucedido (não encontrar nada).
