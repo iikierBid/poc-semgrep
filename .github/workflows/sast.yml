@@ -36,12 +36,14 @@ jobs:
           echo "::error::Bloqueio de PR: Foram encontradas vulnerabilidades que violam a política de segurança. Por favor, verifique os logs do passo 'Run Semgrep Scan' acima para ver os detalhes das vulnerabilidades."
 
       - name: Upload SARIF file
-        if: success()
+        # Sempre fazemos upload do relatório, mesmo se o scan falhar.
+        # Isso garante que tenhamos visibilidade das vulnerabilidades encontradas.
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-report
           path: semgrep.sarif
-          if-no-files-found: error
+          if-no-files-found: warn
 
 #      - name: Upload to DefectDojo
 #        # Este passo sempre será executado para garantir que os resultados sejam registrados.
