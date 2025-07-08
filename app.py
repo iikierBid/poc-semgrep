@@ -8,6 +8,10 @@ app = Flask(__name__)
 # Chaves e segredos nunca devem ser colocados diretamente no código.
 API_KEY = "sk_live_abcdef1234567890_muitosecreto"
 
+# Vulnerabilidade 4: Usando uma string que corresponde a um padrão de alta confiança.
+# O prefixo 'AKIA' e o comprimento são o que a regra procura.
+SECRET_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"
+
 # Configuração do banco de dados (simples, em memória para a PoC)
 def init_db():
     conn = sqlite3.connect(':memory:')
@@ -72,6 +76,17 @@ def check_file():
     output = os.popen(cmd).read()
 
     return f"<h2>Resultado do Comando:</h2><pre>{output}</pre>"
+
+@app.route('/new-vulnerability')
+def new_vulnerability_test():
+    # Vulnerabilidade 5: NOVA função com SQL injection óbvio
+    # Esta função definitivamente não existe na branch main
+    user_id = request.args.get('user_id')
+    query = f"SELECT * FROM users WHERE id = {user_id}"  # SQL injection direto
+    cursor = db_connection.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return f"<h1>Resultado: {result}</h1>"
 
 if __name__ == '__main__':
     # AVISO: Não use o servidor de desenvolvimento do Flask em produção.

@@ -23,27 +23,58 @@ jobs:
       - name: Install Semgrep
         run: pip install semgrep
 
+      - name: Debug - List files and check app.py
+        run: |
+          echo "📁 Arquivos no diretório:"
+          ls -la
+          echo "📄 Conteúdo do app.py (primeiras 20 linhas):"
+          head -20 app.py
+
       - name: Run Semgrep Scan
-        # Voltamos a usar 'semgrep ci', que é o comando ideal para o dia a dia.
-        # Ele é "diff-aware", ou seja, só irá falhar se o Pull Request
-        # introduzir NOVAS vulnerabilidades, ignorando as já existentes na 'main'.
-        # Isso impede que o débito técnico de segurança bloqueie novos desenvolvimentos.
-        run: semgrep ci --config "p/default" --sarif --output=semgrep.sarif
+        # IMPORTANTE: Usando 'semgrep ci' para detectar vulnerabilidades NOVAS em relação à branch main
+        # Isso é ideal para produção pois só bloqueia quando há vulnerabilidades introduzidas no PR
+        # 
+        # Como funciona:
+        # - Compara o código atual com a branch main
+        # - Detecta apenas vulnerabilidades NOVAS (diff-aware)
+        # - Bloqueia o PR se encontrar vulnerabilidades novas
+        # - Permite que código existente na main continue funcionando
+        # 
+        # Rulesets utilizados para máxima cobertura (multi-linguagem):
+        # - p/security-audit: Regras de auditoria de segurança
+        # - p/owasp-top-ten: OWASP Top 10 vulnerabilidades
+        # - p/cwe-top-25: CWE Top 25 vulnerabilidades mais perigosas
+        # - p/secrets: Detecção de secrets/credenciais
+        # - .semgrep.yml: Nossas regras customizadas para padrões específicos
+        # - auto: Auto-detecção de linguagem e regras apropriadas
+        run: semgrep ci --config="p/security-audit" --config="p/owasp-top-ten" --config="p/cwe-top-25" --config="p/secrets" --config=".semgrep.yml" --config="auto" --sarif --output="semgrep.sarif" --verbose
 
       - name: Show custom error on failure
-        # Este passo só executa se o passo anterior falhar (graças a `if: failure()`).
-        # Ele usa a anotação '::error::' para criar uma mensagem de erro clara e visível.
         if: failure()
         run: |
           echo "::error::Bloqueio de PR: Foram encontradas vulnerabilidades que violam a política de segurança. Por favor, verifique os logs do passo 'Run Semgrep Scan' acima para ver os detalhes das vulnerabilidades."
 
+      - name: Convert SARIF to HTML
+        # Converte o relatório SARIF para HTML legível usando script Python
+        if: always()
+        run: |
+          if [ -f "semgrep.sarif" ]; then
+            python3 convert_sarif_to_html.py
+          else
+            echo "Arquivo SARIF não encontrado, pulando conversão para HTML"
+          fi
+
       - name: Upload SARIF file
-        # Este passo só será executado se o scan for bem-sucedido (não encontrar nada).
+        # Sempre fazemos upload do relatório, mesmo se o scan falhar.
+        # Isso garante que tenhamos visibilidade das vulnerabilidades encontradas.
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-report
-          path: semgrep.sarif
-          if-no-files-found: error # Garante que o job falhe se o arquivo não for criado
+          path: |
+            semgrep.sarif
+            semgrep-report.html
+          if-no-files-found: warn
 
 #      - name: Upload to DefectDojo
 #        # Este passo sempre será executado para garantir que os resultados sejam registrados.

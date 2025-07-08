@@ -1,0 +1,208 @@
+rules:
+     # Regra específica para detectar padrões exatos do nosso código
+   - id: python-hardcoded-secrets
+     patterns:
+       - pattern: $VAR = "$VALUE"
+       - metavariable-regex:
+           metavariable: $VAR
+           regex: (?i)(api_key|secret|password|token|key)
+       - metavariable-regex:
+           metavariable: $VALUE
+           regex: '.{10,}'
+     message: |
+       🚨 Credencial hardcoded detectada em Python!
+       
+       Variável: $VAR
+       Valor: $VALUE
+       
+       Riscos de segurança:
+       - Exposição de credenciais no código-fonte
+       - Acesso não autorizado a sistemas
+       - Dificuldade de rotação de credenciais
+       
+       Melhores práticas:
+       - Use variáveis de ambiente: $VAR = os.getenv('$VAR')
+       - Implemente gerenciamento de segredos
+       - Nunca commite credenciais no repositório
+     languages: [python]
+     severity: ERROR
+     metadata:
+       category: security
+       subcategory: secrets
+       confidence: HIGH
+       impact: HIGH
+       likelihood: HIGH
+       cwe: "CWE-798: Use of Hard-coded Credentials"
+       owasp: "A02:2021 - Cryptographic Failures"
+
+  # Regra aprimorada para detectar credenciais hardcoded
+  - id: hardcoded-secret-detection
+    patterns:
+      - pattern-either:
+          - pattern: password = "$SECRET"
+          - pattern: token = "$SECRET"
+          - pattern: api_key = "$SECRET"
+          - pattern: secret = "$SECRET"
+          - pattern: key = "$SECRET"
+          - pattern: API_KEY = "$SECRET"
+          - pattern: SECRET_ACCESS_KEY = "$SECRET"
+          - pattern: SECRET_KEY = "$SECRET"
+          - pattern: ACCESS_TOKEN = "$SECRET"
+      - metavariable-pattern:
+          metavariable: $SECRET
+          patterns:
+            - pattern-not: ""
+            - pattern-not: "..."
+            - pattern-not: "TODO"
+            - pattern-not: "CHANGE_ME"
+            - pattern-not: "your_key_here"
+            - pattern-not: "placeholder"
+            - pattern-regex: '.{8,}'
+    message: |
+      🚨 Credencial hardcoded detectada!
+      
+      Riscos de segurança:
+      - Exposição de credenciais no código-fonte
+      - Acesso não autorizado a sistemas
+      - Dificuldade de rotação de credenciais
+      - Exposição em repositórios públicos
+      
+      Melhores práticas:
+      - Use variáveis de ambiente: os.getenv('API_KEY')
+      - Implemente gerenciamento de segredos (HashiCorp Vault, AWS Secrets Manager)
+      - Nunca commite credenciais no repositório
+      - Use ferramentas como git-secrets para prevenção
+    languages: [javascript, python, java, go, ruby, php, typescript, yaml, json]
+    severity: ERROR
+    metadata:
+      category: security
+      subcategory: secrets
+      confidence: HIGH
+      impact: HIGH
+      likelihood: HIGH
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      owasp: "A02:2021 - Cryptographic Failures"
+
+  # Regra para detectar segredos de alta entropia (chaves aleatórias)
+  - id: generic-high-entropy-secret
+    message: |
+      🔍 Possível segredo de alta entropia detectado!
+      
+      Um valor com alta aleatoriedade foi encontrado, característico de:
+      - Chaves de API
+      - Tokens de autenticação
+      - Chaves criptográficas
+      - Senhas geradas
+      
+      Riscos:
+      - Exposição de credenciais que dão acesso a sistemas críticos
+      
+      Ação Recomendada:
+      - Verifique se este valor é realmente um segredo
+      - Se for, remova-o do código-fonte
+      - Armazene em gerenciador de segredos ou variáveis de ambiente
+    metadata:
+      category: security
+      subcategory: secrets
+      confidence: MEDIUM
+      impact: HIGH
+      likelihood: MEDIUM
+      owasp: "A02:2021 - Cryptographic Failures"
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+    severity: WARNING
+    languages:
+      - generic
+    patterns:
+      - pattern-regex: (?i)['"][a-z0-9\-_.~+/=]{20,}['"]
+      - pattern-not-regex: (?i)'.*https?://.*'
+      - pattern-not-regex: (?i)".*https?://.*"
+      - pattern-not-regex: (?i)(jwt|bearer|token)
+      - pattern-not-regex: (?i)sha(1|256|512)
+      - pattern-not-regex: (?i)md5
+      - pattern-not-regex: (?i)from.*import
+      - pattern-not-regex: (?i)BEGIN (RSA|OPENSSH) PRIVATE KEY
+
+  # Regra específica para chaves AWS
+  - id: aws-access-key-hardcoded
+    patterns:
+      - pattern-regex: (AKIA[A-Z0-9]{16})
+    message: |
+      🚨 Chave AWS Access Key hardcoded detectada!
+      
+      Esta é uma vulnerabilidade crítica de segurança.
+      Chaves AWS nunca devem ser armazenadas no código-fonte.
+      
+      Ações imediatas:
+      1. Rotacione esta chave imediatamente no AWS Console
+      2. Use AWS IAM roles ou variáveis de ambiente
+      3. Considere usar AWS Secrets Manager
+      4. Monitore logs do CloudTrail para uso não autorizado
+    languages: [python, javascript, typescript, java, go, generic]
+    severity: ERROR
+    metadata:
+      category: security
+      subcategory: secrets
+      technology: aws
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      owasp: "A02:2021 - Cryptographic Failures"
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+
+     # Regra específica para chaves Stripe
+   - id: stripe-api-key-hardcoded
+     patterns:
+       - pattern-regex: (sk_live_[a-zA-Z0-9]{24,})
+       - pattern-regex: (sk_test_[a-zA-Z0-9]{24,})
+     message: |
+       💳 Chave Stripe API hardcoded detectada!
+       
+       Isso pode levar a acesso não autorizado a pagamentos e dados financeiros.
+       
+       Ações imediatas:
+       1. Rotacione esta chave no Stripe Dashboard
+       2. Use variáveis de ambiente: stripe.api_key = os.getenv('STRIPE_API_KEY')
+       3. Nunca commite chaves de pagamento no controle de versão
+       4. Monitore transações suspeitas
+     languages: [python, javascript, typescript, java, go, generic]
+     severity: ERROR
+     metadata:
+       category: security
+       subcategory: secrets
+       technology: stripe
+       confidence: HIGH
+       impact: CRITICAL
+       likelihood: HIGH
+       owasp: "A02:2021 - Cryptographic Failures"
+       cwe: "CWE-798: Use of Hard-coded Credentials"
+
+   # Regra regex específica para detectar padrões do nosso app.py
+   - id: direct-secret-patterns
+     patterns:
+       - pattern-regex: (?i)(api_key|secret_access_key|secret_key|password|token)\s*=\s*["']([a-zA-Z0-9_\-]{10,})["']
+     message: |
+       🎯 Padrão de credencial hardcoded detectado!
+       
+       Foi encontrado um padrão típico de credencial hardcoded no formato:
+       VARIÁVEL = "valor_secreto"
+       
+       Riscos críticos:
+       - Exposição de credenciais no controle de versão
+       - Acesso não autorizado a sistemas e APIs
+       - Dificuldade de rotação de credenciais
+       
+       Correções imediatas:
+       1. Remova a credencial do código-fonte
+       2. Use variáveis de ambiente: os.getenv('NOME_DA_VARIAVEL')
+       3. Considere usar gerenciadores de segredos
+       4. Rotacione a credencial exposta
+     languages: [python, javascript, typescript, java, go, generic]
+     severity: ERROR
+     metadata:
+       category: security
+       subcategory: secrets
+       confidence: HIGH
+       impact: CRITICAL
+       likelihood: HIGH
+       owasp: "A02:2021 - Cryptographic Failures"
+       cwe: "CWE-798: Use of Hard-coded Credentials" 
