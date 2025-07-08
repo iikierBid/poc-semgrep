@@ -93,4 +93,20 @@ O projeto inclui regras customizadas em `.semgrep.yml` que detectam:
 
 ---
 
+## ⚙️ **Diferença entre `semgrep ci` vs `semgrep scan`**
+
+### **`semgrep ci` (Produção)**
+- **Diff-aware**: Só reporta vulnerabilidades **novas** introduzidas no PR
+- **Ideal para produção**: Não bloqueia por vulnerabilidades existentes
+- **Foco**: Prevenir introdução de novas vulnerabilidades
+
+### **`semgrep scan` (PoC/Auditoria)**
+- **Full scan**: Reporta **todas** as vulnerabilidades no código
+- **Ideal para PoC**: Mostra o estado atual completo de segurança
+- **Foco**: Auditoria completa do código
+
+### **Configuração Atual**
+- **PoC**: Usando `semgrep scan` para mostrar todas as vulnerabilidades
+- **Produção**: Recomendado trocar para `semgrep ci` após correção inicial
+
 💡 **Dica**: Para desenvolvimento local, use `semgrep --config=auto .` para verificar seu código antes de fazer commit! 

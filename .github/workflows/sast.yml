@@ -24,17 +24,23 @@ jobs:
         run: pip install semgrep
 
       - name: Run Semgrep Scan
-        # Executa análise de segurança com múltiplos rulesets para máxima cobertura:
+        # IMPORTANTE: Usando 'semgrep scan' em vez de 'semgrep ci' para detectar TODAS as vulnerabilidades
+        # (não apenas as novas). Isso é necessário para PoC e para detectar vulnerabilidades existentes.
+        # 
+        # PARA PRODUÇÃO: Troque 'semgrep scan' por 'semgrep ci' após correção inicial das vulnerabilidades.
+        # - semgrep ci: Só detecta vulnerabilidades NOVAS (diff-aware)
+        # - semgrep scan: Detecta TODAS as vulnerabilidades (full scan)
+        # 
+        # Rulesets utilizados para máxima cobertura (multi-linguagem):
         # - p/security-audit: Regras de auditoria de segurança
         # - p/owasp-top-ten: OWASP Top 10 vulnerabilidades
         # - p/cwe-top-25: CWE Top 25 vulnerabilidades mais perigosas
         # - p/secrets: Detecção de secrets/credenciais
-        # - p/python: Regras específicas para Python
-        # - r/python.lang.security.audit.hardcoded-*: Regras específicas para credenciais hardcoded
         # - .semgrep.yml: Nossas regras customizadas para padrões específicos
         # - auto: Auto-detecção de linguagem e regras apropriadas
-        # Por padrão, 'semgrep ci' bloqueia apenas em severidade 'ERROR', que é o ideal.
-        run: semgrep ci --config="p/security-audit" --config="p/owasp-top-ten" --config="p/cwe-top-25" --config="p/secrets" --config="p/python" --config="r/python.lang.security.audit.hardcoded-password" --config="r/python.lang.security.audit.hardcoded-token" --config="r/secrets" --config=".semgrep.yml" --config="auto" --sarif --output="semgrep.sarif"
+        # 
+        # --error: Faz com que o comando falhe se encontrar vulnerabilidades (bloqueia PR)
+        run: semgrep scan --config="p/security-audit" --config="p/owasp-top-ten" --config="p/cwe-top-25" --config="p/secrets" --config=".semgrep.yml" --config="auto" --sarif --output="semgrep.sarif" --error
 
       - name: Show custom error on failure
         if: failure()
