@@ -23,13 +23,22 @@ jobs:
       - name: Install Semgrep
         run: pip install semgrep
 
+      - name: Debug - List files and check app.py
+        run: |
+          echo "📁 Arquivos no diretório:"
+          ls -la
+          echo "📄 Conteúdo do app.py (primeiras 20 linhas):"
+          head -20 app.py
+
       - name: Run Semgrep Scan
-        # IMPORTANTE: Usando 'semgrep scan' em vez de 'semgrep ci' para detectar TODAS as vulnerabilidades
-        # (não apenas as novas). Isso é necessário para PoC e para detectar vulnerabilidades existentes.
+        # IMPORTANTE: Usando 'semgrep ci' para detectar vulnerabilidades NOVAS em relação à branch main
+        # Isso é ideal para produção pois só bloqueia quando há vulnerabilidades introduzidas no PR
         # 
-        # PARA PRODUÇÃO: Troque 'semgrep scan' por 'semgrep ci' após correção inicial das vulnerabilidades.
-        # - semgrep ci: Só detecta vulnerabilidades NOVAS (diff-aware)
-        # - semgrep scan: Detecta TODAS as vulnerabilidades (full scan)
+        # Como funciona:
+        # - Compara o código atual com a branch main
+        # - Detecta apenas vulnerabilidades NOVAS (diff-aware)
+        # - Bloqueia o PR se encontrar vulnerabilidades novas
+        # - Permite que código existente na main continue funcionando
         # 
         # Rulesets utilizados para máxima cobertura (multi-linguagem):
         # - p/security-audit: Regras de auditoria de segurança
@@ -38,9 +47,7 @@ jobs:
         # - p/secrets: Detecção de secrets/credenciais
         # - .semgrep.yml: Nossas regras customizadas para padrões específicos
         # - auto: Auto-detecção de linguagem e regras apropriadas
-        # 
-        # --error: Faz com que o comando falhe se encontrar vulnerabilidades (bloqueia PR)
-        run: semgrep scan --config="p/security-audit" --config="p/owasp-top-ten" --config="p/cwe-top-25" --config="p/secrets" --config=".semgrep.yml" --config="auto" --sarif --output="semgrep.sarif" --error
+        run: semgrep ci --config="p/security-audit" --config="p/owasp-top-ten" --config="p/cwe-top-25" --config="p/secrets" --config=".semgrep.yml" --config="auto" --sarif --output="semgrep.sarif" --verbose
 
       - name: Show custom error on failure
         if: failure()

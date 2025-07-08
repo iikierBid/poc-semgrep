@@ -1,47 +1,39 @@
 rules:
-  # Regra específica para detectar padrões exatos do nosso código
-  - id: python-hardcoded-secrets
-    patterns:
-      - pattern-either:
-          - pattern: $VAR = "$VALUE"
-      - metavariable-pattern:
-          metavariable: $VAR
-          patterns:
-            - pattern-either:
-                - pattern-regex: (?i)(api_key|secret|password|token|key)
-      - metavariable-pattern:
-          metavariable: $VALUE
-          patterns:
-            - pattern-regex: '.{10,}'
-            - pattern-not: ""
-            - pattern-not: "..."
-            - pattern-not: "TODO"
-            - pattern-not: "CHANGE_ME"
-    message: |
-      🚨 Credencial hardcoded detectada em Python!
-      
-      Variável: $VAR
-      Valor: $VALUE
-      
-      Riscos de segurança:
-      - Exposição de credenciais no código-fonte
-      - Acesso não autorizado a sistemas
-      - Dificuldade de rotação de credenciais
-      
-      Melhores práticas:
-      - Use variáveis de ambiente: $VAR = os.getenv('$VAR')
-      - Implemente gerenciamento de segredos
-      - Nunca commite credenciais no repositório
-    languages: [python]
-    severity: ERROR
-    metadata:
-      category: security
-      subcategory: secrets
-      confidence: HIGH
-      impact: HIGH
-      likelihood: HIGH
-      cwe: "CWE-798: Use of Hard-coded Credentials"
-      owasp: "A02:2021 - Cryptographic Failures"
+     # Regra específica para detectar padrões exatos do nosso código
+   - id: python-hardcoded-secrets
+     patterns:
+       - pattern: $VAR = "$VALUE"
+       - metavariable-regex:
+           metavariable: $VAR
+           regex: (?i)(api_key|secret|password|token|key)
+       - metavariable-regex:
+           metavariable: $VALUE
+           regex: '.{10,}'
+     message: |
+       🚨 Credencial hardcoded detectada em Python!
+       
+       Variável: $VAR
+       Valor: $VALUE
+       
+       Riscos de segurança:
+       - Exposição de credenciais no código-fonte
+       - Acesso não autorizado a sistemas
+       - Dificuldade de rotação de credenciais
+       
+       Melhores práticas:
+       - Use variáveis de ambiente: $VAR = os.getenv('$VAR')
+       - Implemente gerenciamento de segredos
+       - Nunca commite credenciais no repositório
+     languages: [python]
+     severity: ERROR
+     metadata:
+       category: security
+       subcategory: secrets
+       confidence: HIGH
+       impact: HIGH
+       likelihood: HIGH
+       cwe: "CWE-798: Use of Hard-coded Credentials"
+       owasp: "A02:2021 - Cryptographic Failures"
 
   # Regra aprimorada para detectar credenciais hardcoded
   - id: hardcoded-secret-detection

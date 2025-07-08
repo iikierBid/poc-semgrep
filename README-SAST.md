@@ -95,18 +95,21 @@ O projeto inclui regras customizadas em `.semgrep.yml` que detectam:
 
 ## ⚙️ **Diferença entre `semgrep ci` vs `semgrep scan`**
 
-### **`semgrep ci` (Produção)**
+### **`semgrep ci` (Produção) - ✅ Em Uso**
 - **Diff-aware**: Só reporta vulnerabilidades **novas** introduzidas no PR
-- **Ideal para produção**: Não bloqueia por vulnerabilidades existentes
+- **Ideal para produção**: Não bloqueia por vulnerabilidades existentes na main
 - **Foco**: Prevenir introdução de novas vulnerabilidades
+- **Comparação**: Compara branch atual com branch main
 
-### **`semgrep scan` (PoC/Auditoria)**
+### **`semgrep scan` (Auditoria Completa)**
 - **Full scan**: Reporta **todas** as vulnerabilidades no código
-- **Ideal para PoC**: Mostra o estado atual completo de segurança
+- **Ideal para auditoria**: Mostra o estado atual completo de segurança
 - **Foco**: Auditoria completa do código
+- **Sem comparação**: Escaneia todo o código independente da branch
 
 ### **Configuração Atual**
-- **PoC**: Usando `semgrep scan` para mostrar todas as vulnerabilidades
-- **Produção**: Recomendado trocar para `semgrep ci` após correção inicial
+- **✅ Usando `semgrep ci`**: Detecta vulnerabilidades novas em relação à main
+- **Cenário**: Branch main limpa, branch de teste com vulnerabilidades
+- **Resultado**: Deve detectar e bloquear as vulnerabilidades do `app.py`
 
 💡 **Dica**: Para desenvolvimento local, use `semgrep --config=auto .` para verificar seu código antes de fazer commit! 
