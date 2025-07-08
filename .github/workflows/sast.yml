@@ -27,8 +27,10 @@ jobs:
         # Voltamos à instalação manual, que se provou mais robusta neste ambiente.
         # O 'semgrep ci' é o comando ideal para produção, pois foca em novas vulnerabilidades
         # e o conjunto de regras 'p/secrets' é focado no nosso caso de uso.
-        # Adicionamos '--blocking-severity WARNING' para o nosso teste, para sermos mais rigorosos.
-        run: semgrep ci --config "p/secrets" --blocking-severity WARNING --sarif --output=semgrep.sarif
+        # introduzir NOVAS vulnerabilidades, ignorando as já existentes na 'main'.
+        # Isso impede que o débito técnico de segurança bloqueie novos desenvolvimentos.
+        # Por padrão, 'semgrep ci' bloqueia apenas em severidade 'ERROR', que é o ideal.
+        run: semgrep ci --config "p/secrets" --sarif --output=semgrep.sarif
 
       - name: Show custom error on failure
         if: failure()
