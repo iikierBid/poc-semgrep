@@ -35,6 +35,16 @@ jobs:
         run: |
           echo "::error::Bloqueio de PR: Foram encontradas vulnerabilidades que violam a política de segurança. Por favor, verifique os logs do passo 'Run Semgrep Scan' acima para ver os detalhes das vulnerabilidades."
 
+      - name: Convert SARIF to HTML
+        # Converte o relatório SARIF para HTML legível usando script Python
+        if: always()
+        run: |
+          if [ -f "semgrep.sarif" ]; then
+            python3 convert_sarif_to_html.py
+          else
+            echo "Arquivo SARIF não encontrado, pulando conversão para HTML"
+          fi
+
       - name: Upload SARIF file
         # Sempre fazemos upload do relatório, mesmo se o scan falhar.
         # Isso garante que tenhamos visibilidade das vulnerabilidades encontradas.
@@ -42,7 +52,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-report
-          path: semgrep.sarif
+          path: |
+            semgrep.sarif
+            semgrep-report.html
           if-no-files-found: warn
 
 #      - name: Upload to DefectDojo
