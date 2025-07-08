@@ -28,7 +28,7 @@ jobs:
         # O 'semgrep ci' é o comando ideal para produção, pois foca em novas vulnerabilidades
         # Usamos múltiplos conjuntos de regras para máxima cobertura de detecção.
         # Por padrão, 'semgrep ci' bloqueia apenas em severidade 'ERROR', que é o ideal.
-        run: semgrep ci --config="p/security-audit" --config="p/owasp-top-ten" --config="p/cwe-top-25" --config="auto" --sarif --output="semgrep.sarif"
+        run: semgrep ci --config="p/security-audit" --config="p/owasp-top-ten" --config="p/cwe-top-25" --config="p/secrets" --config="p/python" --config="r/python.lang.security.audit.hardcoded-password" --config="r/python.lang.security.audit.hardcoded-token" --config="r/secrets" --config=".semgrep.yml" --config="auto" --sarif --output="semgrep.sarif"
 
       - name: Show custom error on failure
         if: failure()

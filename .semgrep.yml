@@ -1,0 +1,93 @@
+rules:
+  - id: hardcoded-api-key
+    patterns:
+      - pattern-regex: |
+          (?i)(api_key|apikey|api-key)\s*=\s*["']([a-zA-Z0-9_\-]{20,})["']
+      - pattern-regex: |
+          (?i)(secret|password|token|key)\s*=\s*["']([a-zA-Z0-9_\-]{15,})["']
+      - pattern-regex: |
+          ["'](sk_live_[a-zA-Z0-9_]{20,})["']
+      - pattern-regex: |
+          ["'](AKIA[a-zA-Z0-9]{16,})["']
+    message: |
+      Hardcoded secret detected. Never store API keys, passwords, or tokens directly in source code.
+      This creates a security risk as secrets can be exposed in version control.
+      
+      Recommended fixes:
+      1. Use environment variables: os.getenv('API_KEY')
+      2. Use a secrets management system
+      3. Use configuration files that are not committed to version control
+    languages:
+      - python
+    severity: ERROR
+    metadata:
+      category: security
+      technology:
+        - python
+      owasp:
+        - A02:2021 - Cryptographic Failures
+      cwe:
+        - "CWE-798: Use of Hard-coded Credentials"
+      references:
+        - https://owasp.org/Top10/A02_2021-Cryptographic_Failures/
+        - https://cwe.mitre.org/data/definitions/798.html
+
+  - id: aws-access-key-hardcoded
+    patterns:
+      - pattern-regex: |
+          (AKIA[A-Z0-9]{16})
+    message: |
+      Hardcoded AWS Access Key detected. This is a critical security vulnerability.
+      AWS access keys should never be stored in source code.
+      
+      Immediate actions:
+      1. Rotate this key immediately in AWS Console
+      2. Use AWS IAM roles or environment variables
+      3. Consider using AWS Secrets Manager
+    languages:
+      - python
+      - javascript
+      - typescript
+      - java
+      - go
+      - generic
+    severity: ERROR
+    metadata:
+      category: security
+      technology:
+        - aws
+      owasp:
+        - A02:2021 - Cryptographic Failures
+      cwe:
+        - "CWE-798: Use of Hard-coded Credentials"
+
+  - id: stripe-api-key-hardcoded
+    patterns:
+      - pattern-regex: |
+          (sk_live_[a-zA-Z0-9]{24,})
+      - pattern-regex: |
+          (sk_test_[a-zA-Z0-9]{24,})
+    message: |
+      Hardcoded Stripe API key detected. This could lead to unauthorized payments or data access.
+      
+      Immediate actions:
+      1. Rotate this key in Stripe Dashboard
+      2. Use environment variables: stripe.api_key = os.getenv('STRIPE_API_KEY')
+      3. Never commit payment keys to version control
+    languages:
+      - python
+      - javascript
+      - typescript
+      - java
+      - go
+      - generic
+    severity: ERROR
+    metadata:
+      category: security
+      technology:
+        - stripe
+        - payments
+      owasp:
+        - A02:2021 - Cryptographic Failures
+      cwe:
+        - "CWE-798: Use of Hard-coded Credentials" 

@@ -73,7 +73,23 @@ convert_sarif_to_html('meu-arquivo.sarif', 'relatorio.html')
 - `.github/workflows/sast.yml` - Configuração do GitHub Actions
 - `convert_sarif_to_html.py` - Conversor SARIF → HTML
 - `view_report.py` - Visualizador local de relatórios
+- `.semgrep.yml` - Regras customizadas de segurança
 - `README-SAST.md` - Esta documentação
+
+## 🔧 Regras Customizadas
+
+O projeto inclui regras customizadas em `.semgrep.yml` que detectam:
+
+### 🔑 **Secrets Hardcoded**
+- **API Keys**: Detecta chaves com padrões como `API_KEY = "..."`
+- **AWS Access Keys**: Detecta chaves AWS com prefixo `AKIA`
+- **Stripe Keys**: Detecta chaves Stripe com prefixos `sk_live_` e `sk_test_`
+
+### 📝 **Como Adicionar Novas Regras**
+1. Edite o arquivo `.semgrep.yml`
+2. Adicione uma nova regra seguindo o formato YAML
+3. Teste localmente: `semgrep --config=.semgrep.yml .`
+4. Commit e push para aplicar automaticamente
 
 ---
 
