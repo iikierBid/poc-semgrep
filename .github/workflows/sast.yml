@@ -26,11 +26,9 @@ jobs:
       - name: Run Semgrep Scan
         # Voltamos à instalação manual, que se provou mais robusta neste ambiente.
         # O 'semgrep ci' é o comando ideal para produção, pois foca em novas vulnerabilidades
-        # e o conjunto de regras 'p/secrets' é focado no nosso caso de uso.
-        # introduzir NOVAS vulnerabilidades, ignorando as já existentes na 'main'.
-        # Isso impede que o débito técnico de segurança bloqueie novos desenvolvimentos.
+        # e o conjunto de regras 'p/default' oferece cobertura abrangente de vulnerabilidades.
         # Por padrão, 'semgrep ci' bloqueia apenas em severidade 'ERROR', que é o ideal.
-        run: semgrep ci --config "p/secrets" --sarif --output=semgrep.sarif
+        run: semgrep ci --config "p/default" --sarif --output=semgrep.sarif
 
       - name: Show custom error on failure
         if: failure()
