@@ -77,6 +77,17 @@ def check_file():
 
     return f"<h2>Resultado do Comando:</h2><pre>{output}</pre>"
 
+@app.route('/new-vulnerability')
+def new_vulnerability_test():
+    # Vulnerabilidade 5: NOVA função com SQL injection óbvio
+    # Esta função definitivamente não existe na branch main
+    user_id = request.args.get('user_id')
+    query = f"SELECT * FROM users WHERE id = {user_id}"  # SQL injection direto
+    cursor = db_connection.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return f"<h1>Resultado: {result}</h1>"
+
 if __name__ == '__main__':
     # AVISO: Não use o servidor de desenvolvimento do Flask em produção.
     # O modo debug também é inseguro.
